@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yediklerimi Yak</title>
+    <!-- PWA için manifest bağlantısı (İstem B sonrası aktifleşecek) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7043">
+    <style>
+        :root {
+            --primary-color: #ff7043;
+            --primary-dark: #f4511e;
+            --bg-color: #fff3e0;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --error-color: #d32f2f;
+        }
+
+        body {
+            font-family: Arial, sans-serif, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-dark);
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            background: #fff8e1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ffe0b2;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .error-msg {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .foods-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .food-card {
+            background-color: #fff;
+            border: 2px solid #ffe0b2;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .food-card:hover {
+            border-color: var(--primary-color);
+            background-color: #fff9c4;
+        }
+
+        .food-card.selected {
+            border-color: var(--primary-dark);
+            background-color: #ffe0b2;
+            box-shadow: 0 0 8px rgba(255, 112, 67, 0.4);
+        }
+
+        .food-emoji {
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .food-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .food-kcal {
+            color: #e65100;
+            font-size: 0.85rem;
+        }
+
+        .result-box {
+            background-color: #fbe9e7;
+            border-left: 5px solid var(--primary-color);
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .result-box h3 {
+            margin-top: 0;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.action-btn {
+            flex: 1;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        button.action-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .message-box {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #d84315;
+            min-height: 24px;
+        }
+
+        .simulation-area {
+            background: #efebe9;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .disclaimer {
+            font-size: 0.75rem;
+            color: #777;
+            text-align: center;
+            line-height: 1.3;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🍟 Yediklerimi Yak</h1>
+    <div class="subtitle">Mizahi Enerji Karşılıkları Simülasyonu</div>
+
+    <div class="input-group">
+        <label for="weightInput">Örnek ağırlık (kg):</label>
+        <input type="number" id="weightInput" value="70" min="1" step="any">
+        <div id="errorMsg" class="error-msg">Geçersiz giriş! Lütfen pozitif bir sayı giriniz.</div>
+    </div>
+
+    <div class="foods-grid" id="foodsGrid">
+        <div class="food-card" data-name="Küçük paket cips (40 g)" data-kcal="210">
+            <div class="food-emoji">🥔</div>
+            <div class="food-name">Küçük paket cips</div>
+            <div class="food-kcal">40 g | 210 kcal</div>
+        </div>
+        <div class="food-card" data-name="Baklava (1 dilim, 40 g)" data-kcal="175">
+            <div class="food-emoji">🍯</div>
+            <div class="food-name">Baklava</div>
+            <div class="food-kcal">1 dilim, 40 g | 175 kcal</div>
+        </div>
+        <div class="food-card" data-name="Kola (1 kutu, 330 ml)" data-kcal="140">
+            <div class="food-emoji">🥤</div>
+            <div class="food-name">Kola</div>
+            <div class="food-kcal">1 kutu, 330 ml | 140 kcal</div>
+        </div>
+        <div class="food-card" data-name="Çikolatalı gofret (35 g)" data-kcal="185">
+            <div class="food-emoji">🍫</div>
+            <div class="food-name">Çikolatalı gofret</div>
+            <div class="food-kcal">35 g | 185 kcal</div>
+        </div>
+    </div>
+
+    <div id="resultBox" class="result-box">
+        <h3 id="resFoodTitle">Seçilen Yiyecek</h3>
+        <p id="resAlternatives">Lütfen bir yiyecek seçin.</p>
+    </div>
+
+    <div class="actions">
+        <button class="action-btn" id="buyBtn">Satın alıyorum</button>
+        <button class="action-btn" id="bargainBtn">Pazarlık yap</button>
+    </div>
+
+    <div class="message-box" id="msgBox"></div>
+
+    <div class="simulation-area">
+        <button class="action-btn" id="simBtn">Simülasyonu başlat</button>
+        <div id="timerDisplay" style="margin-top: 10px; font-weight: bold; font-size: 1.2rem;">Sayaç: 20</div>
+    </div>
+
+    <div class="disclaimer">
+        Sonuçlar yaklaşık olup, yiyecek suç ve egzersiz ceza değildir. Enerji bilgisinde paket etiketi esas alınmıştır. Veriler kullanıcıya ait klinik değerlendirme gibi sunulmaz. Sağlık veya diyet önerisi değildir.
+    </div>
+</div>
+
+<script>
+    // MET katsayıları
+    const MET_WALK = 4.8;
+    const MET_SQUAT = 6.5;
+    const MET_STAIR = 6.8;
+
+    let selectedFood = null;
+    let timerInterval = null;
+
+    const weightInput = document.getElementById('weightInput');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultBox = document.getElementById('resultBox');
+    const resFoodTitle = document.getElementById('resFoodTitle');
+    const resAlternatives = document.getElementById('resAlternatives');
+    const msgBox = document.getElementById('msgBox');
+    const buyBtn = document.getElementById('buyBtn');
+    const bargainBtn = document.getElementById('bargainBtn');
+    const simBtn = document.getElementById('simBtn');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const foodCards = document.querySelectorAll('.food-card');
+
+    // Sayfa açıldığında localStorage'dan son ağırlığı yükle
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedWeight = localStorage.getItem('yediklerimi_yak_weight');
+        if (savedWeight !== null) {
+            weightInput.value = savedWeight;
+        }
+        calculateAndDisplay();
+    });
+
+    // Ağırlık değiştiğinde kontrol et, localStorage'a kaydet ve hesapla
+    weightInput.addEventListener('input', () => {
+        const val = weightInput.value.trim();
+        if (val === '' || isNaN(val) || Number(val) <= 0) {
+            errorMsg.style.display = 'block';
+            resultBox.style.display = 'none';
+            return;
+        } else {
+            errorMsg.style.display = 'none';
+            localStorage.setItem('yediklerimi_yak_weight', val);
+            calculateAndDisplay();
+        }
+    });
+
+    // Yiyecek kartı seçimi
+    foodCards.forEach(card => {
+        card.addEventListener('click', () => {
+            foodCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedFood = {
+                name: card.getAttribute('data-name'),
+                kcal: parseFloat(card.getAttribute('data-kcal'))
+            };
+            calculateAndDisplay();
+        });
+    });
+
+    // Varsayılan olarak ilk yiyeceği seçili yap
+    if (foodCards.length > 0) {
+        foodCards[0].classList.add('selected');
+        selectedFood = {
+            name: foodCards[0].getAttribute('data-name'),
+            kcal: parseFloat(foodCards[0].getAttribute('data-kcal'))
+        };
+    }
+
+    function calculateAndDisplay() {
+        const val = weightInput.value.trim();
+        if (val === '' || isNaN(val) || Number(val) <= 0) {
+            return;
+        }
+        const weight = parseFloat(val);
+
+        if (!selectedFood) return;
+
+        // Formül hesaplamaları: 1 dakikalık enerji = MET * 3.5 * ağırlık / 200
+        const walkMinPerKcal = 1 / ((MET_WALK * 3.5 * weight) / 200);
+        const squatMinPerKcal = 1 / ((MET_SQUAT * 3.5 * weight) / 200);
+        const stairMinPerKcal = 1 / ((MET_STAIR * 3.5 * weight) / 200);
+
+        const walkTime = selectedFood.kcal * walkMinPerKcal;
+        const squatCount = (selectedFood.kcal * squatMinPerKcal) * 20; // 20 squat/dk
+        const stairFloors = (selectedFood.kcal * stairMinPerKcal) * 4; // 4 kat/dk
+
+        // Yuvarlama sadece gösterilen son sayılarda (en yakın tam sayı)
+        const finalWalk = Math.round(walkTime);
+        const finalSquat = Math.round(squatCount);
+        const finalStair = Math.round(stairFloors);
+
+        resFoodTitle.innerText = `${selectedFood.name} (${selectedFood.kcal} kcal)`;
+        resAlternatives.innerHTML = `<strong>${finalWalk} dakika tempolu yürüyüş</strong> VEYA <strong>${finalSquat} squat</strong> VEYA <strong>${finalStair} kat merdiven</strong>`;
+        resultBox.style.display = 'block';
+    }
+
+    // Düğme işlevleri
+    buyBtn.addEventListener('click', () => {
+        msgBox.innerText = "Afiyet olsun!";
+    });
+
+    bargainBtn.addEventListener('click', () => {
+        msgBox.innerText = "Yarım porsiyon / 20 jumping jack!";
+    });
+
+    // Sayaç simülasyonu (20'den 0'a, her 1.5 saniyede bir, çakışmayı önleme önlemli)
+    simBtn.addEventListener('click', () => {
+        if (timerInterval !== null) return; // Zaten çalışıyorsa ikinci sayacı başlatma
+
+        let count = 20;
+        timerDisplay.innerText = `Sayaç: ${count}`;
+        simBtn.disabled = true;
+        msgBox.innerText = "Simülasyon çalışıyor...";
+
+        timerInterval = setInterval(() => {
+            count--;
+            timerDisplay.innerText = `Sayaç: ${count}`;
+            if (count <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                simBtn.disabled = false;
+                msgBox.innerText = "Anlaşma tamam!";
+            }
+        }, 1500);
+    });
+</script>
+
+</body>
+</html>
